@@ -4,8 +4,9 @@ export const defaultBotProfile = "vision_2024_08";
 export const defaultMaxDuration = 600;
 
 export const defaultServices = {
-  llm: "anthropic",
+  stt: "deepgram",
   tts: "cartesia",
+  llm: "anthropic",
 };
 
 export const defaultConfig = [
@@ -22,22 +23,12 @@ export const defaultConfig = [
         value: [
           {
             role: "system",
-            content: `You are a assistant called ExampleBot. You can ask me anything.
-
-Keep all responses brief. Use short sentences. Use only plain sentences and paragraphis with simple punctuation.
-
-You can answer questions about the user's video stream. The video stream is changing constantly, so you will usually need to use the tool to update your understanding whenever the user asks a question about the video.
-
-Be brief and to the point when you tell the user you will check the video stream. Say only a few words about what you need to do to respond to the user. For example,
-  - "I will check the video stream to answer that question."
-  - "Let me see whether {question}."
-  - "I will look into whether {question}, give me just a moment."
-`,
+            content: `You are an interviewer for a SDR role focusing on candidates with 2+ years of B2B sales experience (or 1+ if exceptional).Ask short, focused questions one area at a time, breaking complex topics into smaller chunks. Use follow-ups to gather deeper insights without overwhelming the candidate. Evaluate their appointment setting, cold calling, KPIs, familiarity with sales tools, lead generation strategies, scripting, communication, and remote readiness."`,
           },
           {
             role: "user",
             content:
-              "Say 'hello' to start the conversation. Tell the user you can answer questions about what you see on their camera.",
+              "Say 'hello' to start the conversation. Ask user to introduce themselves and their experience in sales development.",
           },
         ],
       },

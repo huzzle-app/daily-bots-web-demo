@@ -119,10 +119,10 @@ export const Session = React.memo(
             document.getElementById("tray")!
           )}
 
-        <div className="flex-1 flex flex-col items-center justify-center w-full">
+        <div className="flex-1 flex flex-col items-center justify-center w-full gap-y-4">
           <Card.Card
             fullWidthMobile={false}
-            className="w-full max-w-[320px] sm:max-w-[420px] mt-auto shadow-long"
+            className="w-full max-w-[320px] sm:max-w-[70vh] mt-auto shadow-long"
           >
             <Agent
               isReady={state === "ready"}

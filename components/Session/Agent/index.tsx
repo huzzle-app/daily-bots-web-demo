@@ -4,9 +4,6 @@ import { Loader2 } from "lucide-react";
 import { VoiceEvent } from "realtime-ai";
 import { useVoiceClientEvent, VoiceClientVideo } from "realtime-ai-react";
 
-import ModelBadge from "./model";
-import WaveForm from "./waveform";
-
 import styles from "./styles.module.css";
 
 export const Agent: React.FC<{
@@ -61,13 +58,10 @@ export const Agent: React.FC<{
     return (
       <div className={styles.agent}>
         <div className={cx}>
-          <ModelBadge />
-          {!hasStarted ? (
+          {!hasStarted && (
             <span className={styles.loader}>
               <Loader2 size={32} className="animate-spin" />
             </span>
-          ) : (
-            <WaveForm />
           )}
         </div>
         <VoiceClientVideo
