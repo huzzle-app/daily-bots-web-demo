@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LineChart, LogOut, Settings, StopCircle } from "lucide-react";
-import { PipecatMetrics, TransportState, VoiceEvent } from "realtime-ai";
-import { useVoiceClient, useVoiceClientEvent } from "realtime-ai-react";
+import { LogOut, Settings } from "lucide-react";
+import { PipecatMetricsData, RTVIEvent,TransportState } from "realtime-ai";
+import { useRTVIClient, useRTVIClientEvent } from "realtime-ai-react";
 
 import StatsAggregator from "../../utils/stats_aggregator";
 import { Configure } from "../Setup";
@@ -25,7 +25,7 @@ interface SessionProps {
 
 export const Session = React.memo(
   ({ state, onLeave, startAudioOff = false }: SessionProps) => {
-    const voiceClient = useVoiceClient()!;
+    const voiceClient = useRTVIClient()!;
     const [hasStarted, setHasStarted] = useState<boolean>(false);
     const [showDevices, setShowDevices] = useState<boolean>(false);
     const [showStats, setShowStats] = useState<boolean>(false);
@@ -34,17 +34,17 @@ export const Session = React.memo(
 
     // ---- Voice Client Events
 
-    useVoiceClientEvent(
-      VoiceEvent.Metrics,
-      useCallback((metrics: PipecatMetrics) => {
+    useRTVIClientEvent(
+      RTVIEvent.Metrics,
+      useCallback((metrics: PipecatMetricsData) => {
         metrics?.ttfb?.map((m: { processor: string; value: number }) => {
           stats_aggregator.addStat([m.processor, "ttfb", m.value, Date.now()]);
         });
       }, [])
     );
 
-    useVoiceClientEvent(
-      VoiceEvent.BotStoppedSpeaking,
+    useRTVIClientEvent(
+      RTVIEvent.BotStoppedSpeaking,
       useCallback(() => {
         if (hasStarted) return;
         setHasStarted(true);
@@ -138,37 +138,6 @@ export const Session = React.memo(
 
         <footer className="w-full flex flex-row mt-auto self-end md:w-auto">
           <div className="flex flex-row justify-between gap-3 w-full md:w-auto">
-            <Tooltip>
-              <TooltipContent>Interrupt bot</TooltipContent>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    voiceClient.action({
-                      service: "tts",
-                      action: "interrupt",
-                      arguments: [],
-                    });
-                  }}
-                >
-                  <StopCircle />
-                </Button>
-              </TooltipTrigger>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipContent>Show bot statistics panel</TooltipContent>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={showStats ? "light" : "ghost"}
-                  size="icon"
-                  onClick={() => setShowStats(!showStats)}
-                >
-                  <LineChart />
-                </Button>
-              </TooltipTrigger>
-            </Tooltip>
             <Tooltip>
               <TooltipContent>Configure</TooltipContent>
               <TooltipTrigger asChild>

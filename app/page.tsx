@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { LLMHelper } from "realtime-ai";
-import { DailyVoiceClient } from "realtime-ai-daily";
-import { VoiceClientAudio, VoiceClientProvider } from "realtime-ai-react";
+import { LLMHelper, RTVIClient } from "realtime-ai";
+import { DailyTransport } from "realtime-ai-daily";
+import { RTVIClientAudio, RTVIClientProvider } from "realtime-ai-react";
 
 import App from "@/components/App";
 import { CharacterProvider } from "@/components/context";
@@ -18,18 +18,29 @@ import {
 
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
-  const voiceClientRef = useRef<DailyVoiceClient | null>(null);
+  const voiceClientRef = useRef<RTVIClient | null>(null);
 
   useEffect(() => {
     if (!showSplash || voiceClientRef.current) {
       return;
     }
-    const voiceClient = new DailyVoiceClient({
-      baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "/api",
+    const voiceClient = new RTVIClient({
+      transport: new DailyTransport(),
       services: defaultServices,
-      config: defaultConfig,
       timeout: BOT_READY_TIMEOUT,
       enableCam: true,
+      enableMic: true,
+      params: {
+        baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "/api",
+        endpoints: {
+          connect: "/connect",
+          action: "/actions",
+        },
+        requestData: {
+          services: defaultServices,
+        },
+        config: defaultConfig,
+      }
     });
     const llmHelper = new LLMHelper({
       callbacks: {
@@ -49,7 +60,7 @@ export default function Home() {
   }
 
   return (
-    <VoiceClientProvider voiceClient={voiceClientRef.current!}>
+    <RTVIClientProvider client={voiceClientRef.current!}>
       <CharacterProvider>
         <TooltipProvider>
           <main>
@@ -61,7 +72,7 @@ export default function Home() {
           <aside id="tray" />
         </TooltipProvider>
       </CharacterProvider>
-      <VoiceClientAudio />
-    </VoiceClientProvider>
+      <RTVIClientAudio />
+    </RTVIClientProvider>
   );
 }

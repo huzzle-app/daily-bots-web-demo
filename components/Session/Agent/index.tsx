@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
 import clsx from "clsx";
 import { Loader2 } from "lucide-react";
-import { VoiceEvent } from "realtime-ai";
-import { useVoiceClientEvent, VoiceClientVideo } from "realtime-ai-react";
+import { RTVIEvent } from "realtime-ai";
+import { RTVIClientVideo,useRTVIClientEvent } from "realtime-ai-react";
 
 import styles from "./styles.module.css";
 
@@ -24,23 +24,23 @@ export const Agent: React.FC<{
       setBotStatus("connected");
     }, [isReady]);
 
-    useVoiceClientEvent(
-      VoiceEvent.BotDisconnected,
+    useRTVIClientEvent(
+      RTVIEvent.BotDisconnected,
       useCallback(() => {
         setHasStarted(false);
         setBotStatus("disconnected");
       }, [])
     );
 
-    useVoiceClientEvent(
-      VoiceEvent.BotStartedSpeaking,
+    useRTVIClientEvent(
+      RTVIEvent.BotStartedSpeaking,
       useCallback(() => {
         setBotIsTalking(true);
       }, [])
     );
 
-    useVoiceClientEvent(
-      VoiceEvent.BotStoppedSpeaking,
+    useRTVIClientEvent(
+      RTVIEvent.BotStoppedSpeaking,
       useCallback(() => {
         setBotIsTalking(false);
       }, [])
@@ -64,7 +64,7 @@ export const Agent: React.FC<{
             </span>
           )}
         </div>
-        <VoiceClientVideo
+        <RTVIClientVideo
           participant="local"
           mirror={true}
           className={styles.video}
