@@ -5,9 +5,12 @@ export async function POST(request: Request) {
   const { services, config } = await request.json();
 
   if (!services || !config || !process.env.DAILY_BOTS_URL) {
-    return new Response(`Services or config not found on request body`, {
-      status: 400,
-    });
+    return Response.json(
+      {
+        error: "Services or config not found on request body or DAILY_BOTS_URL not set",
+      },
+      { status: 400 }
+    );
   }
 
   const payload = {

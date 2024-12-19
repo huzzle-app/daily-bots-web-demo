@@ -9,7 +9,7 @@ export const defaultServices = {
   llm: "anthropic",
 };
 
-export const defaultConfig = [
+export const getDefaultConfig = (systemPrompt: string) => [
   {
     service: "tts",
     options: [{ name: "voice", value: "79a125e8-cd45-4c13-8a67-188112f4dd22" }],
@@ -23,12 +23,12 @@ export const defaultConfig = [
         value: [
           {
             role: "system",
-            content: `You are an interviewer for a SDR role focusing on candidates with 2+ years of B2B sales experience (or 1+ if exceptional).Ask short, focused questions one area at a time, breaking complex topics into smaller chunks. Use follow-ups to gather deeper insights without overwhelming the candidate. Evaluate their appointment setting, cold calling, KPIs, familiarity with sales tools, lead generation strategies, scripting, communication, and remote readiness."`,
+            content: systemPrompt,
           },
           {
             role: "user",
             content:
-              "Say 'hello' to start the conversation. Ask user to introduce themselves and their experience in sales development.",
+              "Say 'hello' to start the conversation. Ask user to introduce themselves.",
           },
         ],
       },

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { LLMHelper, RTVIClient } from "realtime-ai";
+import { RTVIClient } from "realtime-ai";
 import { DailyTransport } from "realtime-ai-daily";
 import { RTVIClientAudio, RTVIClientProvider } from "realtime-ai-react";
 
@@ -12,16 +12,31 @@ import Header from "@/components/Header";
 import Splash from "@/components/Splash";
 import {
   BOT_READY_TIMEOUT,
-  defaultConfig,
   defaultServices,
+  getDefaultConfig,
 } from "@/rtvi.config";
+const SALES_INTERVIEW_PROMPT_API_URL = 'https://api-staging.huzzle.app/api/v1/config';
 
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
   const voiceClientRef = useRef<RTVIClient | null>(null);
+  const [prompt, setPrompt] = useState("");
+  const [_, fetchPrompt] = useTransition();
 
   useEffect(() => {
-    if (!showSplash || voiceClientRef.current) {
+    fetchPrompt(async () => {
+      try {
+        const res = await fetch(SALES_INTERVIEW_PROMPT_API_URL);
+        const data = await res.json();
+        setPrompt(data.sales_interview_prompt);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showSplash || !prompt || voiceClientRef.current) {
       return;
     }
     const voiceClient = new RTVIClient({
@@ -39,21 +54,12 @@ export default function Home() {
         requestData: {
           services: defaultServices,
         },
-        config: defaultConfig,
+        config: getDefaultConfig(prompt),
       }
     });
-    const llmHelper = new LLMHelper({
-      callbacks: {
-        onLLMFunctionCall: () => {
-          const audio = new Audio("shutter.mp3");
-          audio.play();
-        },
-      },
-    });
-    voiceClient.registerHelper("llm", llmHelper);
 
     voiceClientRef.current = voiceClient;
-  }, [showSplash]);
+  }, [showSplash, prompt]);
 
   if (showSplash) {
     return <Splash handleReady={() => setShowSplash(false)} />;
