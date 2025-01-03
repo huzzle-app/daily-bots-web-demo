@@ -8,7 +8,6 @@ import { RTVIClientAudio, RTVIClientProvider } from "realtime-ai-react";
 
 import App from "@/components/App";
 import { CharacterProvider } from "@/components/context";
-import Header from "@/components/Header";
 import Splash from "@/components/Splash";
 import {
   BOT_READY_TIMEOUT,
