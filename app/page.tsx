@@ -70,7 +70,6 @@ export default function Home() {
       <CharacterProvider>
         <TooltipProvider>
           <main>
-            <Header />
             <div id="app">
               <App />
             </div>
