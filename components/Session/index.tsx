@@ -1,73 +1,58 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { LogOut, Settings } from "lucide-react";
-import { PipecatMetricsData, RTVIEvent,TransportState } from "realtime-ai";
+import { LogOut, LucidePhoneOff, Settings } from "lucide-react";
+import { BotLLMTextData, RTVIEvent,TranscriptData,TransportState } from "realtime-ai";
 import { useRTVIClient, useRTVIClientEvent } from "realtime-ai-react";
 
-import StatsAggregator from "../../utils/stats_aggregator";
 import { Configure } from "../Setup";
 import { Button } from "../ui/button";
 import * as Card from "../ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { useUser } from "../providers/user";
+import { Transcriptions } from "../ui/transcriptions";
 
 import Agent from "./Agent";
-import Stats from "./Stats";
-import UserMicBubble from "./UserMicBubble";
-
-let stats_aggregator: StatsAggregator;
 
 interface SessionProps {
   state: TransportState;
   onLeave: () => void;
   openMic?: boolean;
-  startAudioOff?: boolean;
 }
 
 export const Session = React.memo(
-  ({ state, onLeave, startAudioOff = false }: SessionProps) => {
+  ({ state, onLeave }: SessionProps) => {
+    const { addTranscript } = useUser();
     const voiceClient = useRTVIClient()!;
-    const [hasStarted, setHasStarted] = useState<boolean>(false);
     const [showDevices, setShowDevices] = useState<boolean>(false);
-    const [showStats, setShowStats] = useState<boolean>(false);
-    const [muted, setMuted] = useState(startAudioOff);
     const modalRef = useRef<HTMLDialogElement>(null);
 
-    // ---- Voice Client Events
-
-    useRTVIClientEvent(
-      RTVIEvent.Metrics,
-      useCallback((metrics: PipecatMetricsData) => {
-        metrics?.ttfb?.map((m: { processor: string; value: number }) => {
-          stats_aggregator.addStat([m.processor, "ttfb", m.value, Date.now()]);
-        });
-      }, [])
-    );
-
-    useRTVIClientEvent(
-      RTVIEvent.BotStoppedSpeaking,
-      useCallback(() => {
-        if (hasStarted) return;
-        setHasStarted(true);
-      }, [hasStarted])
-    );
-
-    // ---- Effects
-
-    useEffect(() => {
-      // Reset started state on mount
-      setHasStarted(false);
-    }, []);
-
-    useEffect(() => {
-      // If we joined unmuted, enable the mic once in ready state
-      if (!hasStarted || startAudioOff) return;
+    const onBotStoppedSpeaking = useCallback(() => {
       voiceClient.enableMic(true);
-    }, [voiceClient, startAudioOff, hasStarted]);
+    }, [voiceClient]);
 
-    useEffect(() => {
-      // Create new stats aggregator on mount (removes stats from previous session)
-      stats_aggregator = new StatsAggregator();
-    }, []);
+    const onBotStartedSpeaking = useCallback(() => {
+      voiceClient.enableMic(false);
+    }, [voiceClient]);
+
+    const onBotTranscript = useCallback(
+      (botLLMTextData: BotLLMTextData) => {
+        addTranscript({ speaker: "bot", text: botLLMTextData.text, });
+      },
+      [addTranscript]
+    );
+
+    const onUserTranscript = useCallback(
+      (transcriptData: TranscriptData) => {
+        if (transcriptData.final) {
+          addTranscript({ speaker: "user", text: transcriptData.text });
+        }
+      },
+      [addTranscript]
+    );
+
+    useRTVIClientEvent(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
+    useRTVIClientEvent(RTVIEvent.BotStartedSpeaking, onBotStartedSpeaking);
+    useRTVIClientEvent(RTVIEvent.BotTranscript, onBotTranscript);
+    useRTVIClientEvent(RTVIEvent.UserTranscript, onUserTranscript);
 
     useEffect(() => {
       // Leave the meeting if there is an error
@@ -89,11 +74,6 @@ export const Session = React.memo(
       return () => current?.close();
     }, [showDevices]);
 
-    function toggleMute() {
-      voiceClient.enableMic(muted);
-      setMuted(!muted);
-    }
-
     return (
       <>
         <dialog ref={modalRef}>
@@ -110,33 +90,19 @@ export const Session = React.memo(
           </Card.Card>
         </dialog>
 
-        {showStats &&
-          createPortal(
-            <Stats
-              statsAggregator={stats_aggregator}
-              handleClose={() => setShowStats(false)}
-            />,
-            document.getElementById("tray")!
-          )}
-
-        <div className="flex-1 flex flex-col items-center justify-center w-full gap-y-4">
+        <div className="flex-1 flex flex-row items-center justify-center w-full gap-x-8 p-8">
           <Card.Card
             fullWidthMobile={false}
-            className="w-full max-w-[320px] sm:max-w-[70vh] mt-auto shadow-long"
+            className="w-full max-w-[520px] h-full mt-auto shadow-long"
           >
             <Agent
               isReady={state === "ready"}
-              statsAggregator={stats_aggregator}
             />
           </Card.Card>
-          <UserMicBubble
-            active={hasStarted}
-            muted={muted}
-            handleMute={() => toggleMute()}
-          />
+          <Transcriptions />
         </div>
 
-        <footer className="w-full flex flex-row mt-auto self-end md:w-auto">
+        <footer className="absolute bottom-14 left-14 w-full flex flex-row mt-auto self-end md:w-auto">
           <div className="flex flex-row justify-between gap-3 w-full md:w-auto">
             <Tooltip>
               <TooltipContent>Configure</TooltipContent>
@@ -150,9 +116,8 @@ export const Session = React.memo(
                 </Button>
               </TooltipTrigger>
             </Tooltip>
-            <Button onClick={() => onLeave()} className="ml-auto">
-              <LogOut size={16} />
-              End
+            <Button variant="ghost" size="icon" onClick={() => onLeave()} className="ml-auto bg-red-500 text-white hover:bg-red-600">
+              <LucidePhoneOff size={8} />
             </Button>
           </div>
         </footer>

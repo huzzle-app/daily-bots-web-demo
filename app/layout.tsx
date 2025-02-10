@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { UserProvider } from "@/components/providers/user";
 import { Inter, Space_Mono } from "next/font/google";
 
 import "./global.css";
@@ -29,7 +30,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${fontSans.variable} ${fontMono.variable}`}>
-        {children}
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   );

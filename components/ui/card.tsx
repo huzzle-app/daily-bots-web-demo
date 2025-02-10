@@ -12,7 +12,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        "rounded-3xl border border-transparent bg-origin-border borderClip bg-cardBorder",
+        "rounded-3xl border border-transparent bg-origin-border borderClip bg-cardBorder p-6",
         shadow && "shadow-long",
         fullWidthMobile && "w-full max-w-full min-w-full md:min-w-0",
         className

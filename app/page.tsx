@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { RTVIClient } from "realtime-ai";
 import { DailyTransport } from "realtime-ai-daily";
@@ -14,30 +14,18 @@ import {
   defaultServices,
   getDefaultConfig,
 } from "@/rtvi.config";
-const SALES_INTERVIEW_PROMPT_API_URL = 'https://api-staging.huzzle.app/api/v1/config';
+import { useUser } from "@/components/providers/user";
 
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
   const voiceClientRef = useRef<RTVIClient | null>(null);
-  const [prompt, setPrompt] = useState("");
-  const [_, fetchPrompt] = useTransition();
+  const { user } = useUser();
 
   useEffect(() => {
-    fetchPrompt(async () => {
-      try {
-        const res = await fetch(SALES_INTERVIEW_PROMPT_API_URL);
-        const data = await res.json();
-        setPrompt(data.sales_interview_prompt);
-      } catch (error) {
-        console.error(error);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!showSplash || !prompt || voiceClientRef.current) {
+    if (!showSplash || !user || voiceClientRef.current) {
       return;
     }
+
     const voiceClient = new RTVIClient({
       transport: new DailyTransport(),
       services: defaultServices,
@@ -53,12 +41,12 @@ export default function Home() {
         requestData: {
           services: defaultServices,
         },
-        config: getDefaultConfig(prompt),
+        config: getDefaultConfig(user),
       }
     });
 
     voiceClientRef.current = voiceClient;
-  }, [showSplash, prompt]);
+  }, [showSplash, user]);
 
   if (showSplash) {
     return <Splash handleReady={() => setShowSplash(false)} />;

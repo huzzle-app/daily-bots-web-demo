@@ -14,6 +14,7 @@ import { Button } from "./ui/button";
 import * as Card from "./ui/card";
 import Session from "./Session";
 import { Configure } from "./Setup";
+import { useUser } from "./providers/user";
 
 const status_text = {
   idle: "Initializing...",
@@ -26,6 +27,7 @@ const status_text = {
 export default function App() {
   const voiceClient = useRTVIClient()!;
   const transportState = useRTVIClientTransportState();
+  const { resetTranscripts } = useUser();
 
   const [appState, setAppState] = useState<
     "idle" | "ready" | "connecting" | "connected"
@@ -87,6 +89,7 @@ export default function App() {
 
   async function leave() {
     await voiceClient.disconnect();
+    resetTranscripts();
   }
 
   /**
@@ -108,7 +111,6 @@ export default function App() {
       <Session
         state={transportState}
         onLeave={() => leave()}
-        startAudioOff={startAudioOff}
       />
     );
   }
