@@ -57,7 +57,7 @@ function UserProvider({ children }: UserProviderProps) {
       try {
         let userData;
         if (file.name === INGMAR_RESUME_FILENAME) {
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          await new Promise(resolve => setTimeout(resolve, 3500));
           userData = INGMAR_RESUME_DATA;
         } else {
           const formData = new FormData();
