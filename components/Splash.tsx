@@ -38,7 +38,7 @@ export const Splash: React.FC<SplashProps> = ({ handleReady }) => {
               {isCVUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
             </Button>
           </div>
-          <Button onClick={() => handleReady()} disabled={!user}>Try Demo</Button>
+          <Button onClick={() => handleReady()} disabled={!user}>Start Interview</Button>
         </div>
       </div>
     </main>

@@ -1,5 +1,6 @@
 "use client";
 
+import { INGMAR_RESUME_DATA, INGMAR_RESUME_FILENAME } from "@/utils/constants";
 import { createContext, useContext, ReactNode, useState, useMemo, useTransition, useCallback } from "react";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -54,21 +55,25 @@ function UserProvider({ children }: UserProviderProps) {
   const uploadCV = useCallback((file: File) => {
     startUploadingCV(async () => {
       try {
-        const formData = new FormData();
-        formData.append('cv', file);
-
-        const response = await fetch(RESUME_UPLOAD_API_URL, {
-          method: 'POST',
-          body: formData,
-        });
-
-        const data = await response.json();
+        let userData;
+        if (file.name === INGMAR_RESUME_FILENAME) {
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          userData = INGMAR_RESUME_DATA;
+        } else {
+          const formData = new FormData();
+          formData.append('cv', file);
+          const response = await fetch(RESUME_UPLOAD_API_URL, {
+            method: 'POST',
+            body: formData,
+          });
+          userData = await response.json();
+        }
 
         setUser({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          skills: data.skills.map((skill: { skill: string }) => skill.skill),
-          workExperiences: data.workExperiences.reduce((acc: string[], experience: { summaries: string[] }) => {
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          skills: userData.skills.map((skill: { skill: string }) => skill.skill),
+          workExperiences: userData.workExperiences.reduce((acc: string[], experience: { summaries: string[] }) => {
             const experienceSummaries = experience.summaries.map((summary: string) => summary.trim()).filter((summary: string) => summary.length > 0);
             acc.push(...experienceSummaries);
             return acc;
